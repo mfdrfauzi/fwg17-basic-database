@@ -3,6 +3,7 @@ drop table if exists "promo";
 drop table if exists "order";
 drop table if exists "user";
 
+--create table
 
 create table if not exists "product" (
     "product_id" serial primary key,
@@ -12,8 +13,7 @@ create table if not exists "product" (
     "price" decimal(7, 2) not null,
     "stock" int not null,
     "created_at" timestamp default now(),
-    "updated_at" timestamp,
-    unique ("name")
+    "updated_at" timestamp
 );
 
 create table if not exists "promo" (
@@ -24,8 +24,7 @@ create table if not exists "promo" (
     "end_date" date not null,
     "discount" decimal(5, 2) not null,
     "created_at" timestamp default now(),
-    "updated_at" timestamp,
-    unique ("name")
+    "updated_at" timestamp
 );
 
 create table if not exists "order" (
@@ -45,16 +44,18 @@ create table if not exists "user" (
     "full_name" varchar(255),
     "email" varchar(100),
     "created_at" timestamp default now(),
-    "updated_at" timestamp,
-    unique ("username")
+    "updated_at" timestamp
 );
+
+  --modifying
+--insert
 
 insert into "product" ("name", "category", "description", "price", "stock")
 values
     ('kopi hitam', 'panas', 'Minuman kopi panas', 15000, 20),
     ('kopi susu', 'panas', 'Minuman kopi panas dengan susu', 18000, 15),
-    ('iced cappucino', 'dingin', 'Minuman kopi cappucino dingin', 16000, 18),
-    ('iced americano', 'dingin', 'Minuman kopi americano', 19000, 15),
+    ('kopi hitam dingin', 'dingin', 'Minuman kopi dingin', 16000, 18),
+    ('kopi susu dingin', 'dingin', 'Minuman kopi dingin dengan susu', 19000, 15),
     ('susu vanilla', 'panas', 'Minuman susu panas', 12000, 10),
     ('susu coklat', 'panas', 'Minuman susu panas', 12000, 12);
 
@@ -77,6 +78,8 @@ values
     ('fitriani', 'fifiyani99', 'Fitriani', 'fifi_fitriani@yahoo.com'),
     ('jokoanwar', 'jokoganteng', 'Joko Anwar', 'joko.ganteng@gmail.com');
 
+--update
+   
 update "product" set 
 "name" = 'kopi hitam panas', 
 "price" = 12000,
@@ -99,13 +102,27 @@ update "user" set
 "updated_at" = now()
 where "username" = 'aldiansyah';
 
-delete from "product" where "name" in ('kopi hitam', 'susu coklat', 'susu vanilla') and "category" = 'panas';
+--delete
+
+delete from "product" where "name" in ('susu coklat', 'susu vanilla') and "category" = 'panas';
 
 delete from "promo" where "name" = 'NOVEMBER15';
 
 delete from "user" where "username" = 'fitriani';
 
 delete from "order" where "user_id" = 2;
+
+--upsert
+
+alter table "product" 
+add constraint "product_name_unique" unique ("name");
+
+
+alter table "promo" 
+add constraint "promo_name_unique" unique ("name");
+
+alter table "user" 
+add constraint "user_username_unique" unique ("username");
 
 insert into "product" ("name", "category", "description", "price", "stock")
 values ('kopi hitam', 'panas', 'Minuman kopi panas', 15000, 20)
@@ -124,9 +141,47 @@ set "description" = EXCLUDED."description",
     "discount" = EXCLUDED."discount";
 
 insert into "user" ("username", "password", "full_name", "email")
-values ('aldiansyah', 'aldi123', 'Aldiansyah', 'aldiansyah@gmail.com.com')
+values ('aldiansyah', 'aldi123', 'Aldiansyah', 'aldiansyah@gmail.com')
 ON CONFLICT ("username") DO update
 set "password" = EXCLUDED."password",
     "full_name" = EXCLUDED."full_name",
     "email" = EXCLUDED."email";
 
+
+   --Querying
+-- select by name
+   
+select "product_id", "name", "category", "description", "price", "stock"
+from "product"
+where "name" = 'kopi hitam';
+
+--column aliases
+
+select "product_id" as "ID", "name" as "Product Name", "price" as "Price"
+from "product"
+where "name" = 'kopi hitam';
+
+--order by price
+
+select "product_id", "name", "category", "description", "price", "stock"
+from "product"
+where "category" = 'panas'
+order by "price" desc;
+
+--select distinct
+
+select distinct "product_id", "name", "category", "description", "price", "stock"
+from "product";
+
+
+  --Querying by name, category, promo, and price
+select
+    p."name" as "Product Name",
+    p."category" as "Category",
+    pr."name" as "Promo Name",
+    p."price" as "Price"
+from
+    "product" p
+left join "promo" pr on p."category" = pr."description"
+order by
+    p."price" asc;
