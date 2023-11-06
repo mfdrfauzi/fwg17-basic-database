@@ -12,7 +12,8 @@ create table if not exists "product" (
     "price" decimal(7, 2) not null,
     "stock" int not null,
     "created_at" timestamp default now(),
-    "updated_at" timestamp
+    "updated_at" timestamp,
+    unique ("name")
 );
 
 create table if not exists "promo" (
@@ -23,7 +24,8 @@ create table if not exists "promo" (
     "end_date" date not null,
     "discount" decimal(5, 2) not null,
     "created_at" timestamp default now(),
-    "updated_at" timestamp
+    "updated_at" timestamp,
+    unique ("name")
 );
 
 create table if not exists "order" (
@@ -43,7 +45,8 @@ create table if not exists "user" (
     "full_name" varchar(255),
     "email" varchar(100),
     "created_at" timestamp default now(),
-    "updated_at" timestamp
+    "updated_at" timestamp,
+    unique ("username")
 );
 
 insert into "product" ("name", "category", "description", "price", "stock")
@@ -103,4 +106,27 @@ delete from "promo" where "name" = 'NOVEMBER15';
 delete from "user" where "username" = 'fitriani';
 
 delete from "order" where "user_id" = 2;
+
+insert into "product" ("name", "category", "description", "price", "stock")
+values ('kopi hitam', 'panas', 'Minuman kopi panas', 15000, 20)
+ON CONFLICT ("name") DO update
+set "category" = EXCLUDED."category",
+    "description" = EXCLUDED."description",
+    "price" = EXCLUDED."price",
+    "stock" = EXCLUDED."stock";
+   
+insert into "promo" ("name", "description", "start_date", "end_date", "discount")
+values ('FAZZFOOD10', 'Diskon 10%', '2023-11-01', '2023-11-15', 10.00)
+ON CONFLICT ("name") DO update
+set "description" = EXCLUDED."description",
+    "start_date" = EXCLUDED."start_date",
+    "end_date" = EXCLUDED."end_date",
+    "discount" = EXCLUDED."discount";
+
+insert into "user" ("username", "password", "full_name", "email")
+values ('aldiansyah', 'aldi123', 'Aldiansyah', 'aldiansyah@gmail.com.com')
+ON CONFLICT ("username") DO update
+set "password" = EXCLUDED."password",
+    "full_name" = EXCLUDED."full_name",
+    "email" = EXCLUDED."email";
 
