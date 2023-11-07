@@ -1,8 +1,3 @@
-drop table if exists "product";
-drop table if exists "promo";
-drop table if exists "order";
-drop table if exists "user";
-
 --create table
 
 create table if not exists "product" (
@@ -117,7 +112,6 @@ delete from "order" where "user_id" = 2;
 alter table "product" 
 add constraint "product_name_unique" unique ("name");
 
-
 alter table "promo" 
 add constraint "promo_name_unique" unique ("name");
 
@@ -185,3 +179,75 @@ from
 left join "promo" pr on p."category" = pr."description"
 order by
     p."price" asc;
+    
+alter table "product" rename to "products";
+alter table "promo" rename to "promos";
+alter table "user" rename to "users";
+alter table "order" rename to "orders";
+
+alter table "products" add column "promo_id" int references "promos"("promo_id");
+alter table "products" add column "category_id" int references "categories"("category_id");
+alter table "promos" add column "product_id" int references "products"("product_id");
+alter table "orders" add constraint "fk_orders_user" foreign key ("user_id") references "users"("user_id");
+
+
+update "orders" set "product_id" = 3, "updated_at" = now() where "product_id" = 6;
+alter table "orders" add constraint "fk_orders_product" foreign key ("product_id") references "products"("product_id");
+
+insert into "products" ("name", "category", "description", "price", "stock")
+values
+    ('kopi tubruk', 'kopi', 'kopi tradisional dengan gula', 12000, 15),
+    ('kopi jahe', 'kopi', 'kopi dengan rasa jahe segar', 15000, 12),
+    ('es kopi susu', 'susu', 'minuman dingin kopi susu', 18000, 20),
+    ('susu coklat dingin', 'susu', 'minuman dingin susu coklat', 14000, 18),
+    ('snack kentang', 'snack', 'kentang goreng renyah', 8000, 25),
+    ('nugget ayam', 'snack', 'nugget daging ayam', 10000, 22),
+    ('kopi tumpeng', 'kopi', 'kopi unik dengan tampilan tumpeng', 25000, 10),
+    ('kopi kenangan', 'kopi', 'kopi dengan rasa nostalgia', 16000, 15),
+    ('es teh manis', 'susu', 'minuman teh manis dingin', 10000, 20),
+    ('kue lapis', 'snack', 'kue lapis tradisional', 7500, 30),
+    ('cappuccino', 'kopi', 'kopi dengan busa susu kental', 17000, 18),
+    ('es campur', 'susu', 'minuman campur dingin', 12000, 22),
+    ('kopi tubruk hitam', 'kopi', 'kopi tubruk tanpa gula', 13000, 12),
+    ('susu pisang', 'susu', 'minuman susu pisang segar', 16000, 16),
+    ('keripik sayur', 'snack', 'keripik sayuran renyah', 9000, 28),
+    ('mie goreng', 'snack', 'mie goreng pedas', 12000, 20),
+    ('kopi tawar', 'kopi', 'kopi tawar ringan', 11000, 15),
+    ('susu stroberi', 'susu', 'minuman susu stroberi lezat', 17000, 12),
+    ('es campur spesial', 'susu', 'es campur dengan berbagai topping', 20000, 10),
+    ('kopi vietnam', 'kopi', 'kopi gayo vietnam', 19000, 14),
+    ('sate ayam', 'snack', 'sate ayam dengan bumbu kacang', 15000, 18),
+    ('kopi tubruk manis', 'kopi', 'kopi tubruk dengan gula', 13000, 16),
+    ('susu kacang', 'susu', 'minuman susu kacang gurih', 15000, 20),
+    ('kue mangkok', 'snack', 'kue tradisional mangkok', 7000, 25),
+    ('teh tarik', 'susu', 'minuman teh tarik klasik', 14000, 20);
+
+update "products" set "category" = 'kopi', "updated_at" = now() where "category" = 'panas';
+update "products" set "category" = 'susu', "updated_at" = now() where "category" = 'dingin';
+
+create table "categories" (
+    "category_id" serial primary key,
+    "name" varchar(50) not null,
+    "created_at" timestamp default now(),
+    "updated_at" timestamp
+);
+
+insert into "categories" ("name")
+values
+    ('kopi'),
+    ('susu'),
+    ('snack'),
+    ('lainnya');
+
+update "products" p
+set "category" = c."category_id", "updated_at" = now()
+from "categories" c
+where p."category" = c."name";
+
+update "products" p
+set "category" = c."category_id"
+from "categories" c
+where p."category" = c."name";
+
+
+
