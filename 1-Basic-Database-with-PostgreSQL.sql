@@ -293,5 +293,37 @@ left join "products" "p" on "o"."product_id" = "p"."product_id"
 left join "promos" "pr" on "o"."promo_id" = "pr"."promo_id";
 
 
+select "product_id", "name"
+from "products"
+where "name" like 'kopi%';
 
+select "product_id", "name"
+from "products"
+where "name" ilike '%sa%';
+
+select "p"."product_id", "p"."name", "c"."name" as "category"
+from "products" as "p"
+inner join "categories" as "c" on "p"."category_id" = "c"."category_id";
+
+select "p"."product_id", "p"."name", "c"."name" as "category"
+from "products" as "p"
+left join "categories" as "c" on "p"."category_id" = "c"."category_id";
+
+select "p"."product_id", "p"."name", "c"."name" as "category"
+from "products" as "p"
+right join "categories" as "c" on "p"."category_id" = "c"."category_id";
+
+select "p"."product_id", "p"."name", "c"."name" as "category"
+from "products" as "p"
+full outer join "categories" as "c" on "p"."category_id" = "c"."category_id";
+
+begin;
+update "products" set "stock" = "stock" - 1 where "product_id" = 1;
+insert into "orders" ("user_id", "product_id", "quantity", "total_price") values (1, 1, 1, 15000);
+commit;
+rollback;
+
+select "user_id", sum("total_price") as "total_order_price"
+from "orders"
+group by "user_id";
 
