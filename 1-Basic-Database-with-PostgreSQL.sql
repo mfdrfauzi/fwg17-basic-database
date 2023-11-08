@@ -170,29 +170,25 @@ from "product";
 
   --Querying by name, category, promo, and price
 select
-    p."name" as "Product Name",
-    p."category" as "Category",
-    pr."name" as "Promo Name",
-    p."price" as "Price"
+    "p"."name" as "Product Name",
+    "p"."category" as "Category",
+    "pr"."name" as "Promo Name",
+    "p"."price" as "Price"
 from
     "product" p
-left join "promo" pr on p."category" = pr."description"
+left join "promo" "pr" on "p"."category" = "pr"."description"
 order by
-    p."price" asc;
+    "p"."price" asc;
     
 alter table "product" rename to "products";
 alter table "promo" rename to "promos";
 alter table "user" rename to "users";
 alter table "order" rename to "orders";
+alter table "products" alter column "price" type numeric(10, 2);
+alter table "orders" alter column "total_price" type numeric(10, 2);
 
-alter table "products" add column "promo_id" int references "promos"("promo_id");
-alter table "products" add column "category_id" int references "categories"("category_id");
-alter table "promos" add column "product_id" int references "products"("product_id");
-alter table "orders" add constraint "fk_orders_user" foreign key ("user_id") references "users"("user_id");
-
-
-update "orders" set "product_id" = 3, "updated_at" = now() where "product_id" = 6;
-alter table "orders" add constraint "fk_orders_product" foreign key ("product_id") references "products"("product_id");
+update "products" set "category" = 'kopi', "updated_at" = now() where "category" = 'panas';
+update "products" set "category" = 'susu', "updated_at" = now() where "category" = 'dingin';
 
 insert into "products" ("name", "category", "description", "price", "stock")
 values
@@ -222,9 +218,6 @@ values
     ('kue mangkok', 'snack', 'kue tradisional mangkok', 7000, 25),
     ('teh tarik', 'susu', 'minuman teh tarik klasik', 14000, 20);
 
-update "products" set "category" = 'kopi', "updated_at" = now() where "category" = 'panas';
-update "products" set "category" = 'susu', "updated_at" = now() where "category" = 'dingin';
-
 create table "categories" (
     "category_id" serial primary key,
     "name" varchar(50) not null,
@@ -238,16 +231,67 @@ values
     ('susu'),
     ('snack'),
     ('lainnya');
+   
+alter table "products" add column "category_id" int;
 
-update "products" p
-set "category" = c."category_id", "updated_at" = now()
-from "categories" c
-where p."category" = c."name";
+alter table "products"
+add constraint "products_category_fk"
+foreign key ("category_id")
+references "categories" ("category_id");
 
-update "products" p
-set "category" = c."category_id"
-from "categories" c
-where p."category" = c."name";
+update "products" as "p"
+set "category_id" = "c"."category_id"
+from "categories" as "c"
+where "p"."category" = "c"."name";
+
+alter table "products" drop column "category";
+
+alter table "promos" alter column "discount" type float;
+alter table "promos" add column "min_order_price" numeric(10, 2);
+alter table "orders" add column "promo_id" int;
+alter table "orders" add column "amount_to_pay" numeric(10, 2);
+alter table "orders" add constraint "orders_promo_id_fkey" foreign key ("promo_id") references "promos" ("promo_id");
+
+update "promos"
+set "min_order_price" = 30000
+where "name" = 'FAZZFOOD10';
+
+update "promos"
+set "min_order_price" = 50000
+where "name" = 'NOVEMBER15';
+
+update "orders" as "o"
+set "promo_id" = "p"."promo_id",
+    "amount_to_pay" = case
+        when "o"."total_price" >= "p"."min_order_price" then "o"."total_price" - ("o"."total_price" * ("p"."discount" / 100))
+        else "o"."total_price"
+    end
+from "promos" as p
+where "o"."total_price" >= "p"."min_order_price";
+
+insert into "orders" ("user_id", "product_id", "quantity", "total_price")
+values
+    (1, 1, 3, 36000),
+    (2, 2, 2, 36000),
+    (3, 3, 1, 16000),
+    (4, 4, 5, 95000),
+    (1, 5, 2, 24000),
+    (2, 6, 3, 27000);
+
+update "orders"
+set "product_id" = 2 , "updated_at" = now()
+where "order_id" = 3;
+
+update "orders"
+set "product_id" = 12 , "updated_at" = now()
+where "order_id" = 8;
+
+   
+select "o"."order_id", "o"."user_id", "p"."name" as "productName", "o"."quantity", "o"."total_price", "pr"."name" as "promo_name", "pr"."min_order_price", "o"."amount_to_pay"
+from "orders" "o"
+left join "products" "p" on "o"."product_id" = "p"."product_id"
+left join "promos" "pr" on "o"."promo_id" = "pr"."promo_id";
+
 
 
 
